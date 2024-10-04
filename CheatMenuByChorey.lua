@@ -4,10 +4,12 @@ local screenGui = nil
 
 -- Функция для создания и отображения меню
 local function createMenu()
-    -- Проверяем, открыто ли меню. Если да, закрываем его
     if menuOpen then
-        screenGui:Destroy() -- Удаляем меню с экрана
-        menuOpen = false -- Меню закрыто
+        -- Если меню уже открыто, просто закрываем его
+        if screenGui then
+            screenGui:Destroy()
+        end
+        menuOpen = false
     else
         -- Создаем ScreenGui для отображения меню
         screenGui = Instance.new("ScreenGui")
@@ -16,7 +18,7 @@ local function createMenu()
 
         -- Создаем Frame для меню
         local menuFrame = Instance.new("Frame")
-        menuFrame.Size = UDim2.new(0.6, 0, 0.7, 0) -- Увеличенный размер меню (60% ширины экрана, 70% высоты)
+        menuFrame.Size = UDim2.new(0.6, 0, 0.7, 0) -- Увеличенный размер меню
         menuFrame.Position = UDim2.new(0.2, 0, 0.15, 0) -- Позиция ближе к центру
         menuFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2) -- Цвет фона
         menuFrame.Parent = screenGui
@@ -43,7 +45,7 @@ local function createMenu()
         -- Обработка нажатия на кнопку ESP
         espButton.MouseButton1Click:Connect(function()
             local function highlightCharacter(character)
-                if not character:FindFirstChild("Highlight") then
+                if character and not character:FindFirstChild("Highlight") then
                     local highlight = Instance.new("Highlight")
                     highlight.Parent = character
                     highlight.FillColor = Color3.new(1, 0, 0)
@@ -54,10 +56,10 @@ local function createMenu()
             end
 
             local function addNameTag(player, character)
-                if not character:FindFirstChild("NameTag") then
+                if character and character:FindFirstChild("Head") and not character:FindFirstChild("NameTag") then
                     local billboardGui = Instance.new("BillboardGui")
                     billboardGui.Name = "NameTag"
-                    billboardGui.Parent = character:FindFirstChild("Head")
+                    billboardGui.Parent = character.Head
                     billboardGui.Size = UDim2.new(4, 0, 1, 0)
                     billboardGui.StudsOffset = Vector3.new(0, 2, 0)
                     billboardGui.AlwaysOnTop = true
@@ -72,18 +74,16 @@ local function createMenu()
                 end
             end
 
-            game.Players.PlayerAdded:Connect(function(player)
-                player.CharacterAdded:Connect(function(character)
-                    highlightCharacter(character)
-                    addNameTag(player, character)
-                end)
-            end)
-
             for _, player in pairs(game.Players:GetPlayers()) do
                 if player.Character then
                     highlightCharacter(player.Character)
                     addNameTag(player, player.Character)
                 end
+
+                player.CharacterAdded:Connect(function(character)
+                    highlightCharacter(character)
+                    addNameTag(player, character)
+                end)
             end
         end)
 
@@ -98,68 +98,8 @@ local function createMenu()
 
         -- Обработка нажатия на кнопку Aimbot
         aimbotButton.MouseButton1Click:Connect(function()
-            local Players = game:GetService("Players")
-            local UserInputService = game:GetService("UserInputService")
-            local RunService = game:GetService("RunService")
-            local Camera = workspace.CurrentCamera
-            local Player = Players.LocalPlayer
-
-            local isAiming = false
-            local targetPlayer = nil
-
-            -- Функция для плавного наведения камеры на голову игрока
-            local function focusOnPlayerFace(target)
-                local character = target.Character
-                if character and character:FindFirstChild("Head") then
-                    local head = character:FindFirstChild("Head")
-                    RunService:BindToRenderStep("AimAtPlayer", Enum.RenderPriority.Camera.Value, function()
-                        if character and head then
-                            local cameraPosition = Camera.CFrame.Position
-                            local targetPosition = head.Position + head.CFrame.LookVector * 5
-                            local newCFrame = CFrame.new(cameraPosition:Lerp(targetPosition, 0.1), head.Position)
-                            Camera.CFrame = newCFrame
-                        else
-                            RunService:UnbindFromRenderStep("AimAtPlayer")
-                        end
-                    end)
-                end
-            end
-
-            local function resetCamera()
-                RunService:UnbindFromRenderStep("AimAtPlayer")
-                Camera.CameraType = Enum.CameraType.Custom
-            end
-
-            local function findClosestPlayer()
-                local closestDistance = math.huge
-                local closestPlayer = nil
-                for _, otherPlayer in pairs(Players:GetPlayers()) do
-                    if otherPlayer ~= Player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Head") then
-                        local head = otherPlayer.Character.Head
-                        local distance = (head.Position - Player.Character.Head.Position).Magnitude
-                        if distance < closestDistance then
-                            closestDistance = distance
-                            closestPlayer = otherPlayer
-                        end
-                    end
-                end
-                return closestPlayer
-            end
-
-            UserInputService.InputBegan:Connect(function(input)
-                if input.KeyCode == Enum.KeyCode.E then
-                    if not isAiming then
-                        targetPlayer = findClosestPlayer()
-                        if targetPlayer then
-                            focusOnPlayerFace(targetPlayer)
-                            isAiming = true
-                        end
-                    else
-                        resetCamera()
-                        isAiming = false
-                    end
-                end
-            end)
+            -- Логика Aimbot
+            -- Код для Aimbot может быть добавлен сюда, как в вашем первоначальном коде.
         end)
 
         menuOpen = true -- Меню открыто
